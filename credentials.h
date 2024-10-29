@@ -17,6 +17,5 @@ const int numberOfReceivers = 1;
 // +international_country_code + phone number
 // Portugal +351, example: +351912345678
 RECEIVER receivers[numberOfReceivers] = {
-//  {WHATSAPP, "+4917668317706",""}, // Mama
-  {WHATSAPP, "+4917642067679","7137227"} // Jörg
+  {WHATSAPP, "PHONENUMBER","CallMeBot-API"}
 };
