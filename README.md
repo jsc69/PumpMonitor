@@ -1,6 +1,6 @@
 # PumpMonitor
 
-PumpMonitor is a small project to monitor to drainage pumps. There is a main pump and a second pump which kicks in when the main pump do not work.
+PumpMonitor is a small project to monitor drainage pumps. There is a main pump and a second pump which kicks in when the main pump does not work.
 The pumps are monitored by two LEDs.
 1. GREEN: main pump is powered
 2. RED: second pump is powered

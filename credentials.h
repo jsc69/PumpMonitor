@@ -5,12 +5,8 @@ struct RECEIVER {
 };
 
 // WIFI credentials
-//const char* ssid = "WLAN-E9ED56";
-//const char* password = "7513074084240857";
-//const char* ssid = "TP-Link_D938";
-//const char* password = "18447750";
-const char* ssid = "FRITZ!Box 7520 XK";
-const char* password = "33963578811096206111";
+const char* ssid = "SSID";
+const char* password = "PASSWORD";
 
 // Messenger templates
 const char* SIGNAL = "https://signal.callmebot.com/signal/send.php?phone=%s&apikey=%s&text=%s";
