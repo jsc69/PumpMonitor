@@ -17,13 +17,14 @@ const int LED_PIN = 2;
 
 const int TIME_TO_SLEEP = 20;     // Time ESP32 will go to sleep (in seconds)
 
-RTC_DATA_ATTR int bootCount = 0;  // Number of reboots
+//RTC_DATA_ATTR int bootCount = 0;  // Number of reboots
 
 void setup() {
   Serial.begin(115200);
+  logMessage("starting...");
 
-  pinMode(MAIN_PUMP_PIN, INPUT_PULLDOWN);
-  pinMode(SECOND_PUMP_PIN, INPUT_PULLDOWN);
+  pinMode(MAIN_PUMP_PIN, INPUT_PULLUP);
+  pinMode(SECOND_PUMP_PIN, INPUT_PULLUP);
   pinMode(LED_PIN, OUTPUT);
 
   digitalWrite(LED_PIN, HIGH);
@@ -31,7 +32,9 @@ void setup() {
   runCheck();
 
   /* Now we wrap up for Deep Sleep */
+  // ESP8266: ESP.deepSleep(TIME_TO_SLEEP * 1000000);
   esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * 1000000);  // Set up timer as the wake up source and set sleep duration in microseconds
+  logMessage("Gehe schlafen");
   Serial.flush();                                          // Waits for the transmission of outgoing serial data to complete.
   esp_deep_sleep_start();                                  // Start the deep sleep mode
 }
@@ -52,13 +55,14 @@ void runCheck() {
   Serial.println("Running tests");
   int mainPump = digitalRead(MAIN_PUMP_PIN);
   int secondPump = digitalRead(SECOND_PUMP_PIN);
-  if (secondPump)
+  if (!secondPump)
     sendAlert("Drainage-Notpumpe wurde aktiviert!");
   else if (!mainPump)
     sendAlert("Beide Drainagepumpen sind ohne Strom!");
 }
 
 void sendAlert(String message) {
+  logMessage("Alarm senden: " + message);
   char url[255];
   char encoded[255];
   urlEncode(message).toCharArray(encoded, 255);
@@ -80,7 +84,7 @@ void sendMessage(char* url){
 
   HTTPClient http;
   http.begin(url);
-
+  
   // Specify content-type header
   http.addHeader("Content-Type", "application/x-www-form-urlencoded");
   
@@ -98,4 +102,10 @@ void sendMessage(char* url){
 
 void loop() {
   // This is not going to be called
+}
+
+void logMessage(String s) {
+  if (debug) {
+    Serial.println(s);
+  }
 }
