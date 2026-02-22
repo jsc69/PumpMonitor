@@ -15,7 +15,8 @@ boolean debug = false;
 const int SECOND_PUMP_PIN = 16;
 const int LED_PIN = 2;
 
-const uint64_t TIME_TO_SLEEP = 60*60;     // Time ESP32 will go to sleep in seconds (60*60 = 1 hour)
+const uint64_t TIME_TO_SLEEP = 5; //60*60;     // Time ESP32 will go to sleep in seconds (60*60 = 1 hour)
+const uint8_t COUNT_FOR_ALIVE = 10; //24*7;
 
 RTC_DATA_ATTR int bootCount = 0;  // Number of reboots
 
@@ -53,10 +54,10 @@ void setupWIFI() {
 }
 
 void runCheck() {
-  Serial.println("Running tests");
-  if (bootCount >= 24*7) {
-    sendAlive();
-    bootCount = 0;
+  Serial.printf("Running %d. tests", bootCount);
+  if (bootCount >= COUNT_FOR_ALIVE) {
+    if (sendAlive())
+      bootCount = 0;
   }
   //int mainPump = digitalRead(MAIN_PUMP_PIN);
   int secondPump = digitalRead(SECOND_PUMP_PIN);
@@ -66,7 +67,7 @@ void runCheck() {
   //  sendAlert("Beide Drainagepumpen sind ohne Strom!");
 }
 
-void sendAlive() {
+bool sendAlive() {
   String message = "Der Pumpenmonitor arbeitet noch";
   logMessage("Alive senden: " + message);
   char url[255];
@@ -74,28 +75,30 @@ void sendAlive() {
   urlEncode(message).toCharArray(encoded, 255);
   sprintf(url, receivers[0].urlTemplate, receivers[0].phoneNumber, receivers[0].apiKey, encoded);
   Serial.printf("Send message: '%s' to: %s\n", encoded, receivers[0].phoneNumber);
-  sendMessage(url);
+  return sendMessage(url);
 }
 
-void sendAlert(String message) {
+bool sendAlert(String message) {
   logMessage("Alarm senden: " + message);
   char url[255];
   char encoded[255];
   urlEncode(message).toCharArray(encoded, 255);
+  bool sendOk=true;
   for (int i=0; i<numberOfReceivers; i++) {
     sprintf(url, receivers[i].urlTemplate, receivers[i].phoneNumber, receivers[i].apiKey, encoded);
     Serial.printf("Send message: '%s' to: %s\n", encoded, receivers[i].phoneNumber);
-    sendMessage(url);
+    sendOk &= sendMessage(url);
   }
+  return sendOk;
 }
 
-void sendMessage(char* url){
+bool sendMessage(char* url){
   if (WiFi.status() != WL_CONNECTED)
     setupWIFI();
 
   if (debug) {
     Serial.printf("Do not send %s\n", url);
-    return;
+    return true;
   }
 
   HTTPClient http;
@@ -105,15 +108,18 @@ void sendMessage(char* url){
   http.addHeader("Content-Type", "application/x-www-form-urlencoded");
   
   // Send HTTP POST request
+  bool sendOk=true;
   int httpResponseCode = http.POST(url);
   if (httpResponseCode != 200) {
     Serial.print("Error sending the message to ");
     Serial.println(url);
     Serial.print("HTTP response code: ");
     Serial.println(httpResponseCode);
+    sendOk = false;
   }
   // Free resources
   http.end();
+  return sendOk;
 }
 
 void loop() {
