@@ -1,0 +1,20 @@
+
+                       +----ANTENNA----+
+ GND(BTN)|      Xo GND | TX        RST | GND oo      | GND(ZMCT103C)
+    BNT1 |      Xo  27 | RX    (A0)SVP | NC  Xo  BAT |
+    BNT2 |      Xo  25 | 22(D1) (D0)26 | SVN oo      |
+   STROM | BUSY XX  32 | 21(D2) (D5)18 | 35  Xo  SCK | ZMCT103C
+         | DC   oX TDI | 17(D3) (D6)19 | 33  oo      | 
+         | RST  oX  04 | 16(D4) (D7)23 | 34  XX MOSI | 
+         |      oX  08 | GND    (D8)05 | TMS Xo   CS |
+         |      oo  02 | 5V        3V3 | NC  Xo  3V3(ZMCT103C)
+         |      -o SD1 +-TD0-------TCK-+ SD2 o-      |
+         |      -- CLK   SD0  SB   SD3   CMD oo      |
+
+GND -> Display | Button, ZMCT103C
+3V3 -> Display | ZMCT103C
+
+X : used
+o : open
+- : DO NOT USE!
+
