@@ -1,8 +1,8 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <ArduinoOTA.h>
-#include <GxEPD2_BW.h>  // Library Library GxEPD2
-#include <U8g2_for_Adafruit_GFX.h> 
+#include <GxEPD2_BW.h>              // Library GxEPD2
+#include <U8g2_for_Adafruit_GFX.h>  // Library U8g2_for_Adafruit_GFX
 #include <time.h>
 #include <WebServer.h>
 #include <HTTPUpdateServer.h>
@@ -10,7 +10,7 @@
 #include <WiFiClientSecure.h>
 #define ENABLE_IMAP
 #define ENABLE_SMTP
-#include <ReadyMail.h>
+#include <ReadyMail.h>              // Library ReadyMail
 
 // --- KONFIGURATION ---
 static const char* TAG = "PUMP_MONITOR";
@@ -83,10 +83,7 @@ RTC_DATA_ATTR char lastSystemStart[20] = "Systemstart";
 // --- FUNKTIONEN ---
 
 void updateDisplay(String header, String detail, char iconCode) {
-  display.init(115200, true, 2, false); 
-  u8g2Fonts.begin(display); 
-
-  display.setRotation(1);
+  Serial.println("Update: " + header + " - " + detail);
   display.setFullWindow();
   display.firstPage();
   do {
@@ -113,7 +110,7 @@ void updateDisplay(String header, String detail, char iconCode) {
     u8g2Fonts.setForegroundColor(GxEPD_BLACK);
     u8g2Fonts.setBackgroundColor(GxEPD_WHITE);
     u8g2Fonts.setFont(u8g2_font_helvB18_tf); 
-    u8g2Fonts.setCursor(0, 85);
+    u8g2Fonts.setCursor(0, 82);
     u8g2Fonts.print(detail);
 
     // 3. STATUS-BEREICH (Wie gehabt)
@@ -321,7 +318,7 @@ float fetchBatteryVoltage() {
     raw += analogRead(PIN_AKKU);
     delay(2);
   }
-  batVoltage = (raw / 15.0 / 4095.0) * 3.3 * 2.0 * 1.1;
+  batVoltage = (raw / 20.0 / 4095.0) * 3.3 * 2.0 * 1.1;
   ESP_LOGD(TAG, "Batteriespannung berechnet: %.2fV", batVoltage);
   return batVoltage;
 }
@@ -339,7 +336,7 @@ void checkPumpActivity() {
   int mx = 0, mn = 4095;
   uint32_t start = millis();
   while (millis() - start < 200) {
-    int v = analogRead(PIN_STROM);
+    int v = analogRead(PIN_PUMP_CHECK);
     if (v > mx) mx = v;
     if (v < mn) mn = v;
   }
@@ -408,7 +405,7 @@ esp_sleep_wakeup_cause_t reason = esp_sleep_get_wakeup_cause();
 void handleAlarms() {
   if (alarmSperre) return;
 
-  bool netz = digitalRead(PIN_NETZ_CHECK);
+  bool netz = digitalRead(PIN_POWER_CHECK);
   if (!netz) {
     ESP_LOGW(TAG, "Stromausfall detektiert!");
     sendWhatsApp("ALARM: Stromausfall!");
@@ -444,7 +441,7 @@ void startDeepSleep() {
   esp_sleep_enable_timer_wakeup(sleepTimeMicros); // Zeit-Intervall 
   
   // Wakeup wenn Netzspannung wegfällt (LOW)
-  esp_sleep_enable_ext0_wakeup((gpio_num_t)PIN_NETZ_CHECK, 0); 
+  esp_sleep_enable_ext0_wakeup((gpio_num_t)PIN_POWER_CHECK, 0); 
   
   // Wakeup für BEIDE Buttons (EXT1 Bitmaske) 
   uint64_t buttonMask = (1ULL << PIN_BUTTON_DOWN) | (1ULL << PIN_BUTTON_UP);
@@ -458,10 +455,12 @@ void startDeepSleep() {
 
 void setup() {
   Serial.begin(115200);
-  // Optional: Log-Level global setzen (Standard ist Info)
-  esp_log_level_set(TAG, ESP_LOG_VERBOSE);
 
-esp_sleep_wakeup_cause_t reason = esp_sleep_get_wakeup_cause();
+  display.init(115200, true, 10, false); 
+  u8g2Fonts.begin(display); 
+  display.setRotation(0);
+
+  esp_sleep_wakeup_cause_t reason = esp_sleep_get_wakeup_cause();
   if (reason == ESP_SLEEP_WAKEUP_EXT1) {
     ESP_LOGI(TAG, "Wakeup: BUTTON (Reset/OTA)");
   } else if (reason == ESP_SLEEP_WAKEUP_TIMER) {
@@ -472,7 +471,7 @@ esp_sleep_wakeup_cause_t reason = esp_sleep_get_wakeup_cause();
 
   pinMode(PIN_BUTTON_DOWN, INPUT_PULLUP);
   pinMode(PIN_BUTTON_UP, INPUT_PULLUP);
-  pinMode(PIN_NETZ_CHECK, INPUT); // Kein interner Pullup an GPIO 35 möglich!
+  pinMode(PIN_POWER_CHECK, INPUT); // Kein interner Pullup an GPIO 35 möglich!
   syncTime();
 
   fetchBatteryVoltage();

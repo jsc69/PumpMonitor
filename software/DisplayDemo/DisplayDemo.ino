@@ -64,7 +64,7 @@ void updateDisplay(String header, String detail, char iconCode) {
 
 void setup() {
   Serial.begin(115200);
-  delay(1000);
+  delay(500);
 
   // Diese Zeilen verhindern die "is not set as GPIO" Fehler:
   Serial.println("PIN_CS");
@@ -77,7 +77,7 @@ void setup() {
   pinMode(PIN_BUSY, INPUT);  // Pin 4
   Serial.println("PINS ARE OK");
 
-  display.init(115200, true, 2, false); 
+  display.init(115200, true, 20, false); 
   u8g2Fonts.begin(display); 
   display.setRotation(0);
 }

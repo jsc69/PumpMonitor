@@ -8,6 +8,9 @@
 #define PIN_BUTTON_DOWN 27  // Button 1 [cite: 10]
 #define PIN_BUTTON_UP   25  // Button 2 [cite: 10]
 
+// Die integrierte LED liegt beim ESP32 D1 Mini meist auf Pin 2
+const int PIN_LED = 2;
+
 // Display Pins [cite: 10, 11]
 #define CS   5
 #define DC  17
@@ -20,21 +23,26 @@ U8G2_FOR_ADAFRUIT_GFX u8g2Fonts;
 static const char* TAG = "PUMP_TEST";
 
 void setup() {
-  Serial.begin(115200);
-  esp_log_level_set(TAG, ESP_LOG_VERBOSE);
+  pinMode(PIN_NETZ_CHECK, INPUT);
+  pinMode(PIN_STROM, INPUT);
+  pinMode(PIN_AKKU, INPUT);
+  pinMode(PIN_LED, OUTPUT);
+  digitalWrite(PIN_LED, HIGH);
+  //Serial.begin(115200);
+  //esp_log_level_set(TAG, ESP_LOG_VERBOSE);
+
+  delay(2000);
+
+  display.init(115200, true, 50, false); // Wichtig für E-Ink nach Sleep/Reset 
+  u8g2Fonts.begin(display);
 
   pinMode(PIN_BUTTON_DOWN, INPUT_PULLUP);
   pinMode(PIN_BUTTON_UP, INPUT_PULLUP);
-  pinMode(PIN_NETZ_CHECK, INPUT);
-  
-  display.init(115200, true, 2, false); // Wichtig für E-Ink nach Sleep/Reset 
-  u8g2Fonts.begin(display);
-  ESP_LOGI(TAG, "Testprogramm gestartet");
 }
 
 void loop() {
   // 1. Sensoren auslesen
-  // Akku (Pin 36) [cite: 60, 61]
+  // Akku (Pin 36)
   int rawAkku = analogRead(PIN_AKKU);
   float volAkku = (rawAkku / 4095.0) * 3.3 * 2.0 * 1.1; 
 
@@ -42,7 +50,7 @@ void loop() {
   int rawNetz = analogRead(PIN_NETZ_CHECK);
   float volNetz = (rawNetz / 4095.0) * 3.3 * 2.0; // Beispielhafter Teiler
 
-  // Stromsensor Pumpe (Pin 35) - Peak-to-Peak Messung [cite: 65, 66, 67]
+  // Stromsensor Pumpe (Pin 35) - Peak-to-Peak Messung
   int mx = 0, mn = 4095;
   uint32_t start = millis();
   while (millis() - start < 100) {
@@ -57,8 +65,8 @@ void loop() {
   bool b2 = !digitalRead(PIN_BUTTON_UP);
 
   // 2. Logging [cite: 61, 67, 93]
-  ESP_LOGI(TAG, "V_Akku: %.2fV | V_Netz: %.2fV | Strom_P2P: %d", volAkku, volNetz, stromDiff);
-  ESP_LOGD(TAG, "Buttons: B1=%s, B2=%s", b1 ? "AN" : "AUS", b2 ? "AN" : "AUS");
+//  ESP_LOGI(TAG, "V_Akku: %.2fV | V_Netz: %.2fV | Strom_P2P: %d", volAkku, volNetz, stromDiff);
+//  ESP_LOGD(TAG, "Buttons: B1=%s, B2=%s", b1 ? "AN" : "AUS", b2 ? "AN" : "AUS");
 
   // 3. Display Ausgabe [cite: 14, 15, 20]
   display.setFullWindow();
@@ -87,5 +95,10 @@ void loop() {
 
   } while (display.nextPage());
 
-  delay(3000); // 10 Sekunden warten
+  for (int i=0; i<5; i++) {
+    digitalWrite(PIN_LED, LOW);
+    delay(500);
+    digitalWrite(PIN_LED, HIGH);
+    delay(500);
+  }
 }
