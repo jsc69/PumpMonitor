@@ -34,9 +34,9 @@
 #include <SPI.h>
 
 // Optionaler E-Paper-Support: Kommentiere diese Zeile aus, wenn kein Display vorhanden
-#define TEST_DISPLAY
+#define TEST_DISPLAY_OK
 
-#ifdef TEST_DISPLAY
+#ifdef TEST_DISPLAY_OK
   #include <GxEPD2_BW.h>
   #include <Fonts/FreeMonoBold9pt7b.h>
   // GDEY0154D67: 1.54" SSD1681, 200x200 Pixel, Schwarz/Weiss
@@ -46,19 +46,21 @@
 #endif
 
 // ── Pin-Definitionen ─────────────────────────────────────────────────────────
-#define PIN_DIS_MOSI   2
-#define PIN_DIS_SCK    3
-#define PIN_DIS_CS     4
-#define PIN_DIS_DC     5
-#define PIN_DIS_RST    6
-#define PIN_DIS_BUSY   7
+#define PIN_DIS_MOSI   21
+#define PIN_DIS_SCK    20
+#define PIN_DIS_CS     6
+#define PIN_DIS_DC     7
+#define PIN_DIS_RST    10
+#define PIN_DIS_BUSY   9
 
-#define PIN_PUMP_CHECK   8   // ADC1_CH7
-#define PIN_POWER_CHECK  9   // ADC1_CH8
-#define PIN_AKKU_CHECK  10   // ADC1_CH9
+#define PIN_PUMP_CHECK  0   // ADC1_CH7
+#define PIN_POWER_CHECK 3   // ADC1_CH8
+#define PIN_AKKU_CHECK  1   // ADC1_CH9
 
-#define PIN_BTN_UP      11
-#define PIN_BTN_DOWN    12
+#define PIN_BTN_UP      5
+#define PIN_BTN_DOWN    4
+
+#define PIN_BUILD_IN_LED 8
 
 // ── Messkonstanten ────────────────────────────────────────────────────────────
 // Spannungsteiler AKKU_CHECK: R12=100k (oben), R13=100k (unten)
@@ -323,7 +325,7 @@ void testDisplay() {
   Serial.println(F("TEST 5: E-Paper-Display"));
   printSeparator();
 
-#ifdef TEST_DISPLAY
+#ifdef TEST_DISPLAY_OK
   Serial.println(F("  Initialisiere Display..."));
 
   SPI.begin(PIN_DIS_SCK, -1, PIN_DIS_MOSI, PIN_DIS_CS);
@@ -448,6 +450,7 @@ void testSummary() {
 
 void setup() {
   Serial.begin(115200);
+  Serial.println("START");
   delay(500);
 
   // ADC-Auflösung auf 12 Bit

@@ -1,7 +1,7 @@
 #define PIN_BUTTON_DOWN 27  // Button 1
 #define PIN_BUTTON_UP   25  // Button 2
 
-#define LED PIN_BUTTON_UP
+#define LED 8
 
 
 void setup() {
