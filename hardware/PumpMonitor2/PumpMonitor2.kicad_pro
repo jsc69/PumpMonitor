@@ -726,7 +726,7 @@
         "uuid": "a64df1c8-1015-4e03-acf3-99726186efb0"
       }
     ],
-    "used_designators": "",
+    "used_designators": "#PWR26,ESP32\\-C3_SuperMini1",
     "variants": []
   },
   "sheets": [

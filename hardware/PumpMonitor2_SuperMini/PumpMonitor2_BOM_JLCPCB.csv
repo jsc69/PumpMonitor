@@ -1,0 +1,23 @@
+Comment,Designator,Footprint,LCSC Part Number
+100,"R6,R9",R_0805_2012Metric_Pad1.20x1.40mm_HandSolder,
+100k,"R10,R12,R13,R7,R8",R_0805_2012Metric_Pad1.20x1.40mm_HandSolder,
+100n,"C10,C11,C5,C6,C7,C8",C_0805_2012Metric_Pad1.18x1.45mm_HandSolder,
+10u,"C3,C4,C9",C_0805_2012Metric_Pad1.18x1.45mm_HandSolder,
+180k,R11,R_0805_2012Metric_Pad1.20x1.40mm_HandSolder,
+1k,R5,R_0805_2012Metric_Pad1.20x1.40mm_HandSolder,
+22,"R18,R19",R_0805_2012Metric_Pad1.20x1.40mm_HandSolder,C1203
+22u,C12,C_0805_2012Metric_Pad1.18x1.45mm_HandSolder,
+4k,R4,R_0805_2012Metric_Pad1.20x1.40mm_HandSolder,
+5K1,"R16,R17",R_0805_2012Metric_Pad1.20x1.40mm_HandSolder,C26000
+Conn_01x02_Pin,"J1,J2,J6",PinHeader_1x02_P2.54mm_Vertical,
+Conn_01x03_Pin,J5,PinHeader_1x03_P2.54mm_Vertical,
+Conn_01x04_Pin,"J7,J8",PinHeader_1x04_P2.54mm_Vertical,
+Conn_01x08_Socket,J4,PinHeader_1x08_P2.54mm_Vertical,
+D,D3,Nexperia_CFP3_SOD-123W,C5120763
+ESP32-S2-WROVER,U7,ESP32-S2-WROVER,
+FerriteBead_Small,FB6,L_0805_2012Metric,C963878
+TP4056-42-ESOP8,U2,SOIC-8-1EP_3.9x4.9mm_P1.27mm_EP2.41x3.3mm_ThermalVias,C16581
+USB_C_Receptacle_USB2.0_16P,J3,USB_C_Receptacle_HRO_TYPE-C-31-M-12,C42400252
+XB5352A,U4,XB5352A,C154943
+XC6210B332MR,U6,SOT-23-5,C49375238
+ZMCT103C,TR1,Transformer_Zeming_ZMCT103C,
