@@ -2,10 +2,15 @@
 #include <Fonts/FreeSansBold9pt7b.h>
 
 // Definiere die Pins explizit, um Konflikte mit internen Makros zu vermeiden
-#define EPD_CS    5
-#define EPD_DC    17
-#define EPD_RST   16
-#define EPD_BUSY  4
+#define EPD_CS    6
+#define EPD_DC    7
+#define EPD_RST   10
+#define EPD_BUSY  9
+
+#define PIN_DIS_MOSI   21
+#define PIN_DIS_SCK    20
+#define PIN_DIS_CS     6
+
 
 // Nutze den GDEY0154D67 Treiber für das WeAct 1.54" Modul (SSD1681) [cite: 10, 16]
 GxEPD2_BW<GxEPD2_154_GDEY0154D67, GxEPD2_154_GDEY0154D67::HEIGHT> display(GxEPD2_154_GDEY0154D67(EPD_CS, EPD_DC, EPD_RST, EPD_BUSY));
@@ -14,6 +19,8 @@ void setup() {
   Serial.begin(115200);
   delay(1000); // Kurze Pause für den Serial Monitor
   Serial.println("WeAct Display Test startet...");
+
+  SPI.begin(PIN_DIS_SCK, -1, PIN_DIS_MOSI, PIN_DIS_CS);
 
   display.init(115200, true, 2, false); // Initialisierung mit Reset-Impuls
   
@@ -37,8 +44,8 @@ void setup() {
     display.println("System: ESP32");
     
     display.drawRect(10, 120, 180, 40, GxEPD_BLACK);
-    display.setCursor(45, 145);
-    display.print("TEST ERFOLGREICH");
+    display.setCursor(15, 145);
+    display.print("TEST WIRKLICH ERFOLGREICH");
     
   } while (display.nextPage());
 

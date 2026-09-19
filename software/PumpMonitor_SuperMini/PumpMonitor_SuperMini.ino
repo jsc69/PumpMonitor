@@ -1,3 +1,4 @@
+//#define USB // Deaktiviert den Stromausfalltest
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <ArduinoOTA.h>
@@ -14,47 +15,26 @@
 #define ENABLE_SMTP
 #include <ReadyMail.h>              // Library ReadyMail
 
+#include "credentials.h"
+
 // --- KONFIGURATION ---
 static const char* TAG = "PUMP_MONITOR";
 const int PUMP_TRIGGER = 1500;  // => Pumpe AUS + (Pumpen AN - Pumpe AUS)/2 => 200 + (2800-200)/2 = 1500
 
-const char* ssid = "DEIN_WLAN_NAME";
-const char* password = "DEIN_PASSWORT";
-const char* ota_user = "admin";
-const char* ota_pass = "geheim123";
-const bool NO_WHATSAPP = true;
+bool NO_WHATSAPP = true;
+bool NO_EMAIL = false;
 
 // --- ZEITSTEUERUNG ---
 const int SLEEP_MINUTES = 2;   // Zentrales Intervall zwischen zwei Messungen
 const int HEARTBEAT_DAYS = 7;  // Alle wie viele Tage soll ein Statusbericht kommen?
+const uint32_t OTA_TIMEOUT = 120000;
 
-// --- E-Mail Zugangsdaten ---
-const char* WIFI_SSID = "DEIN_WLAN_NAME";
-const char* WIFI_PASSWORD = "DEIN_WLAN_PASSWORT";
-const char* SMTP_HOST = "smtp.gmail.com";
-const uint16_t SMTP_PORT = 465;
-const char* IMAP_HOST = "imap.gmail.com";
-const uint16_t IMAP_PORT = 993;
-const char* AUTHOR_EMAIL = "deine-email@gmail.com";
-const char* AUTHOR_PASSWORD = "dein-app-passwort";
-const char* email_recipients[] = {
-  "beispiel1@gmail.com",
-  "beispiel2@web.de",
-  "beispiel3@gmx.net"
-};
 
 // Objekte
 WiFiClientSecure ssl_client;
 SMTPClient smtp(ssl_client);
 IMAPClient imap(ssl_client);
 
-// Konfiguration WhatsApp
-const char* whatsapp_recipients[] = {
-  "491701111111",
-  "491712222222",
-  "491723333333"
-};
-String apiKey = "123456";
 
 // ============================================================
 // Pins für ESP32-C3 SuperMini (16-Pin-Board)
@@ -73,16 +53,18 @@ String apiKey = "123456";
 #define PIN_BUTTON_UP    5   // Zusatz-Funktion, Wakeup-fähig
 
 // Display - freie GPIOs, keine ADC/Wakeup-Anforderung
-#define CS               6
-#define DC               7
-#define RST             10
-#define BUSY             9   // Achtung: Strapping-Pin (BOOT-Taster), siehe Hinweis unten
-#define PIN_EPD_SCK     20
-#define PIN_EPD_MOSI    21
-// GPIO 2 und GPIO 8 bleiben bewusst frei (beide Strapping-Pins)
+#define PIN_DIS_MOSI 21
+#define PIN_DIS_SCK  20
+#define PIN_DIS_CS   6
+#define PIN_DIS_DC   7
+#define PIN_DIS_RST  10
+#define PIN_DIS_BUSY 9
+
+#define PIN_LED      8
 
 // Display & Server Instanzen
-GxEPD2_BW<GxEPD2_154_GDEY0154D67, GxEPD2_154_GDEY0154D67::HEIGHT> display(GxEPD2_154_GDEY0154D67(CS, DC, RST, BUSY));
+GxEPD2_BW<GxEPD2_154_GDEY0154D67, GxEPD2_154_GDEY0154D67::HEIGHT> display(
+  GxEPD2_154_GDEY0154D67(PIN_DIS_CS, PIN_DIS_DC, PIN_DIS_RST, PIN_DIS_BUSY));
 U8G2_FOR_ADAFRUIT_GFX u8g2Fonts;
 WebServer httpServer(80);
 HTTPUpdateServer httpUpdater;
@@ -178,6 +160,11 @@ void setTime() {
 }
 
 void syncTime() {
+  // Timezone auf MET setzen (mit automatischer Sommer-/Normalzeit)
+  // CET = UTC+1 (Winter), CEST = UTC+2 (Sommer)
+  setenv("TZ", "CET-1CEST,M3.5.0,M10.5.0", 1);
+  tzset();
+  
   if (time(nullptr) < 1700000000) {
     setTime();
   }
@@ -193,11 +180,18 @@ void sendWhatsApp(String msg) {
 
   if (connectWiFi()) {
     HTTPClient http;
-    msg.replace(" ", "+");
+    msg.replace(" ", "+"); // Leerzeichen in der Nachricht durch "+" ersetzen
 
     int num_recipients = sizeof(whatsapp_recipients) / sizeof(whatsapp_recipients[0]);
     for (int i = 0; i < num_recipients; i++) {
-      String url = "https://api.callmebot.com/whatsapp.php?phone=" + String(whatsapp_recipients[i]) + "&text=" + msg + "&apikey=" + apiKey;
+      // Telefonnummer für die URL anpassen: "+" durch "%2B" ersetzen
+      String phone = String(whatsapp_recipients[i]);
+      phone.replace("+", "%2B");
+
+      String url = "https://api.callmebot.com/whatsapp.php?phone=" + phone +
+                   "&text=" + msg +
+                   "&apikey=" + String(apiKey); // apiKey aus credentials.h
+
       http.begin(url);
       int httpCode = http.GET();
 
@@ -208,14 +202,14 @@ void sendWhatsApp(String msg) {
       }
       http.end();
 
-      // Kleiner Delay, damit die API nicht blockiert
-      delay(500);
+      delay(500); // Verzögerung zwischen den Anfragen
     }
   }
 }
 
 // --- SMTP: Senden ---
 void sendStatusMail(String subject, String messageText, String logFilename = "", String logContent = "") {
+  if (NO_EMAIL) return;
   if (!connectWiFi()) return;
 
   ssl_client.setInsecure();
@@ -352,6 +346,15 @@ bool checkBattery() {
 }
 
 void checkPumpActivity() {
+  int differenz = messurePumpCurrent();
+
+  if (differenz > PUMP_TRIGGER) {
+    ESP_LOGI(TAG, "Aktivität erkannt: %d > %d", differenz, PUMP_TRIGGER);
+    geraetLiefZuvor = true;
+  }
+}
+
+int messurePumpCurrent() {
   int mx = 0, mn = 4095;
   uint32_t start = millis();
   while (millis() - start < 200) {
@@ -361,12 +364,9 @@ void checkPumpActivity() {
   }
 
   int differenz = mx - mn;
-  ESP_LOGD(TAG, "Gemessene Differenz: %d", differenz);
+  ESP_LOGD(TAG, "Gemessene Pump-Strom: %d", differenz);
 
-  if (differenz > PUMP_TRIGGER) {
-    ESP_LOGI(TAG, "Aktivität erkannt: %d > %d", differenz, PUMP_TRIGGER);
-    geraetLiefZuvor = true;
-  }
+  return differenz;
 }
 
 void handleOTAMode() {
@@ -376,9 +376,62 @@ void handleOTAMode() {
     updateDisplay("OTA AN", "IP: " + ip + "\nUser: " + String(ota_user) + "\nPwd: " + String(ota_pass), 129);
     httpUpdater.setup(&httpServer, "/update", ota_user, ota_pass);
     httpServer.begin();
+
+     uint32_t otaStart = millis();
     while (true) {
       httpServer.handleClient();
+      
+      // DOWN-Button zum Abbrechen
+      if (!digitalRead(PIN_BUTTON_DOWN)) {
+        ESP_LOGI(TAG, "OTA abgebrochen vom Benutzer");
+        updateDisplay("ABORT", "OTA beendet", 120);
+        delay(2000);
+        break;  // ← Aus der Schleife raus!
+      }
+      
+      // Timeout abgelaufen?
+      if (millis() - otaStart > OTA_TIMEOUT) {
+        ESP_LOGI(TAG, "OTA-Timeout");
+        updateDisplay("TIMEOUT", "Kein Update\nerhalten", 120);
+        delay(2000);
+        break;  // ← Aus der Schleife raus!
+      }
+      
       delay(1);
+    }
+    
+    // OTA beendet → zurück zu Sleep
+    httpServer.stop();
+    WiFi.disconnect();
+    ESP_LOGI(TAG, "OTA beendet, zurück zu Sleep");
+    updateDisplay("OK", 
+              "Akku: " + String(batVoltage, 2) + "V\n" +
+              "Zyklen: " + String(wakeupCounter) + "\n" +
+              "Last: " + String(lastSystemStart), 
+              120);
+
+    startDeepSleep();
+  }
+}
+
+void handleMeasurement() {
+  updateDisplay("MESSUNG",  
+              "Akku: " + String(batVoltage, 2) + "V\n" +
+              "Pumpe: " + String(messurePumpCurrent()) + "\n" +
+              "Last: " + String(lastSystemStart), 
+              141);
+  while(!digitalRead(PIN_BUTTON_UP)) {}
+  uint32_t start = millis();
+  while(true) {
+    if (!digitalRead(PIN_BUTTON_DOWN)) {
+      startDeepSleep();
+    }
+    if (millis() % 1000 == 0) {
+      updateDisplay("MESSUNG",  
+              "Akku: " + String(batVoltage, 2) + "V\n" +
+              "Pumpe: " + String(messurePumpCurrent()) + "\n" +
+              "Last: " + String(lastSystemStart), 
+              141);
     }
   }
 }
@@ -389,44 +442,42 @@ void resetAlarm() {
   updateDisplay("RESET", "System\nzurückgesetzt", 243);
 }
 
-void checkButton() {
-  esp_sleep_wakeup_cause_t reason = esp_sleep_get_wakeup_cause();
-  // ESP32-C3 kennt kein EXT1 - der gemeinsame GPIO-Wakeup (Netz + beide
-  // Taster) liefert stattdessen ESP_SLEEP_WAKEUP_GPIO.
-  if (reason == ESP_SLEEP_WAKEUP_GPIO) {
-    // Welcher Button wurde gedrückt? (Low-Aktiv)
-    bool down = !digitalRead(PIN_BUTTON_DOWN);
-    bool up = !digitalRead(PIN_BUTTON_UP);
+void checkButton(uint64_t wakeupPins) {
+  // Welcher Button wurde gedrückt? Aus WakeUp-Bitmaske
+  bool down = wakeupPins & (1ULL << PIN_BUTTON_DOWN);
+  bool up = wakeupPins & (1ULL << PIN_BUTTON_UP);
 
-    if (down) {
-      ESP_LOGI(TAG, "Button 1 erkannt -> Starte Reset/OTA-Logik");
-      uint32_t t = millis();
-      bool longPress = true;
-      while (millis() - t < 3000) {
-        if (digitalRead(PIN_BUTTON_DOWN)) {
-          longPress = false;
-          break;
-        }
-      }
-      if (longPress) {
-        handleOTAMode();
-      } else {
-        resetAlarm();
+  if (down) {
+    ESP_LOGD(TAG, "Button 1 erkannt -> Starte Reset/OTA-Logik");
+    uint32_t t = millis();
+    bool longPress = true;
+    while (millis() - t < 3000) {
+      if (digitalRead(PIN_BUTTON_DOWN)) {
+        longPress = false;
+        break;
       }
     }
-
-    if (up) {
-      ESP_LOGI(TAG, "Button 2 erkannt -> Aktion ausführen");
-      updateDisplay("MANUELL", "Messung\nerzwungen", 120);
-      // Hier könnte z.B. eine sofortige Messung erfolgen
+    if (longPress) {
+      handleOTAMode();
+    } else {
+      resetAlarm();
     }
+  }
+
+  if (up) {
+    ESP_LOGI(TAG, "Button 2 erkannt -> Aktion ausführen");
+    handleMeasurement();
   }
 }
 
 void handleAlarms() {
   if (alarmSperre) return;
 
+#ifdef USB
+  bool netz = true;
+#else
   bool netz = digitalRead(PIN_POWER_CHECK);
+#endif
   if (!netz) {
     ESP_LOGW(TAG, "Stromausfall detektiert!");
     sendWhatsApp("ALARM: Stromausfall!");
@@ -470,7 +521,7 @@ void startDeepSleep() {
   // Da PIN_POWER_CHECK, PIN_BUTTON_DOWN und PIN_BUTTON_UP alle aktiv-LOW
   // sind, können sie in EINER Maske zusammengefasst werden: das System
   // wacht auf, sobald IRGENDEINER dieser Pins auf LOW geht.
-  uint64_t wakeupMask = (1ULL << PIN_POWER_CHECK) | (1ULL << PIN_BUTTON_DOWN) | (1ULL << PIN_BUTTON_UP);
+  uint64_t wakeupMask = (1ULL << PIN_BUTTON_DOWN) | (1ULL << PIN_BUTTON_UP);
   esp_deep_sleep_enable_gpio_wakeup(wakeupMask, ESP_GPIO_WAKEUP_GPIO_LOW);
 
   ESP_LOGD(TAG, "Deep Sleep gestartet für %d Min.", SLEEP_MINUTES);
@@ -481,36 +532,54 @@ void startDeepSleep() {
 
 void setup() {
   Serial.begin(115200);
+  
+  uint64_t wakeupPins = 0;
+  esp_sleep_wakeup_cause_t cause = esp_sleep_get_wakeup_cause();
+  if (cause == ESP_SLEEP_WAKEUP_GPIO) {
+    ESP_LOGI(TAG, "Wakeup: GPIO (Button)");
+    wakeupPins = esp_sleep_get_gpio_wakeup_status();
+  } else if (cause == ESP_SLEEP_WAKEUP_TIMER) {
+    ESP_LOGI(TAG, "Wakeup: TIMER (Intervall %d)", wakeupCounter);
+  }
 
   // Hardware-SPI auf die gewählten Display-Pins legen (der C3 hat keine
   // fest verdrahteten Standard-SPI-Pins wie 18/23 beim klassischen ESP32).
-  SPI.begin(PIN_EPD_SCK, -1 /* MISO wird vom Display nicht benötigt */, PIN_EPD_MOSI, CS);
+  SPI.begin(PIN_DIS_SCK, -1 /* MISO wird vom Display nicht benötigt */, PIN_DIS_MOSI, PIN_DIS_CS);
 
+  // Display-Kontrollpins initialisieren
+  pinMode(PIN_DIS_CS, OUTPUT);
+  pinMode(PIN_DIS_DC, OUTPUT);
+  pinMode(PIN_DIS_RST, OUTPUT);
+  pinMode(PIN_DIS_BUSY, INPUT);
+
+  pinMode(PIN_LED, OUTPUT);
+  pinMode(PIN_BUTTON_DOWN, INPUT_PULLUP);
+  pinMode(PIN_BUTTON_UP, INPUT_PULLUP);
+  pinMode(PIN_POWER_CHECK, INPUT);
+ 
   display.init(115200, true, 10, false); 
   u8g2Fonts.begin(display); 
   display.setRotation(0);
 
-  esp_sleep_wakeup_cause_t reason = esp_sleep_get_wakeup_cause();
-  if (reason == ESP_SLEEP_WAKEUP_GPIO) {
-    ESP_LOGI(TAG, "Wakeup: GPIO (Netz/Button)");
-  } else if (reason == ESP_SLEEP_WAKEUP_TIMER) {
-    ESP_LOGI(TAG, "Wakeup: TIMER (Intervall %d)", wakeupCounter);
-  }
-
-  pinMode(PIN_BUTTON_DOWN, INPUT_PULLUP);
-  pinMode(PIN_BUTTON_UP, INPUT_PULLUP);
-  pinMode(PIN_POWER_CHECK, INPUT); // Interner Pullup wäre auf GPIO3 zwar möglich, aber wie im Original bewusst extern gelöst
   syncTime();
+
+  checkButton(wakeupPins);
 
   fetchBatteryVoltage();
   checkBattery();
   checkPumpActivity();
 
-  checkButton();
-
-  handleAlarms();
   handleStatusReport();
-  // updateDisplay("SYSTEM OK", "Letzte Prüfung\nam 22.03. 10:00h", 120);
+  handleAlarms();
+
+  if (!alarmSperre) {
+    updateDisplay("OK", 
+              "Akku: " + String(batVoltage, 2) + "V\n" +
+              "Zyklen: " + String(wakeupCounter) + "\n" +
+              "Last: " + String(lastSystemStart), 
+              120);
+  }
+
   startDeepSleep();
 }
 

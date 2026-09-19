@@ -1,10 +1,12 @@
 #include <GxEPD2_BW.h>
 #include <U8g2_for_Adafruit_GFX.h>
 
-#define PIN_CS    5
-#define PIN_DC    17
-#define PIN_RST   16
-#define PIN_BUSY  4
+#define PIN_MOSI   21
+#define PIN_SCK    20
+#define PIN_CS    6
+#define PIN_DC    7
+#define PIN_RST   10
+#define PIN_BUSY  9
 
 GxEPD2_BW<GxEPD2_154_GDEY0154D67, GxEPD2_154_GDEY0154D67::HEIGHT> display(GxEPD2_154_GDEY0154D67(PIN_CS, PIN_DC, PIN_RST, PIN_BUSY));
 U8G2_FOR_ADAFRUIT_GFX u8g2Fonts;
@@ -76,6 +78,8 @@ void setup() {
   Serial.println("PIN_BUSY");
   pinMode(PIN_BUSY, INPUT);  // Pin 4
   Serial.println("PINS ARE OK");
+
+  SPI.begin(PIN_SCK, -1, PIN_MOSI, PIN_CS);
 
   display.init(115200, true, 20, false); 
   u8g2Fonts.begin(display); 

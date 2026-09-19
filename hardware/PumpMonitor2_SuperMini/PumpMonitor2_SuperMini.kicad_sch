@@ -2051,14 +2051,15 @@
 			(on_board yes)
 			(in_pos_files yes)
 			(duplicate_pin_numbers_are_jumpers no)
-			(property "Reference" "U"
-				(at -10.16 18.034 0)
+			(property "Reference" "U1"
+				(at -11.176 17.78 0)
 				(show_name no)
 				(do_not_autoplace no)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
+					(justify left)
 				)
 			)
 			(property "Value" ""
@@ -2353,9 +2354,9 @@
 					)
 				)
 				(pin power_in line
-					(at 0 -20.32 90)
+					(at 2.54 19.05 270)
 					(length 2.54)
-					(name "GND"
+					(name "3V3"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -2371,16 +2372,16 @@
 					)
 				)
 				(pin power_in line
-					(at 2.54 19.05 270)
+					(at 0 -20.32 90)
 					(length 2.54)
-					(name "3V3"
+					(name "GND"
 						(effects
 							(font
 								(size 1.27 1.27)
 							)
 						)
 					)
-					(number "14"
+					(number "15"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -3710,6 +3711,10 @@
 		(uuid "ffdb5fdc-9c94-4409-bba7-9a7ae14eb2e6")
 	)
 	(no_connect
+		(at 171.45 43.18)
+		(uuid "8195f3be-4879-4cd9-b14d-268ff33bdda9")
+	)
+	(no_connect
 		(at 187.96 69.85)
 		(uuid "a5a27b20-6596-4a6f-aea3-a4ef0e91f810")
 	)
@@ -3840,16 +3845,6 @@
 			(type default)
 		)
 		(uuid "20066aa5-2985-4681-8a24-8ff2adf251ac")
-	)
-	(wire
-		(pts
-			(xy 171.45 38.1) (xy 171.45 43.18)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "2012e9d0-64cc-4a06-b6b1-39b6a364c628")
 	)
 	(wire
 		(pts
@@ -6337,84 +6332,6 @@
 		)
 	)
 	(symbol
-		(lib_id "power:+5V")
-		(at 171.45 38.1 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "51e6be5a-e06a-4d6b-a35a-acbe43423f06")
-		(property "Reference" "#PWR026"
-			(at 171.45 41.91 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "+5V"
-			(at 171.45 33.02 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 171.45 38.1 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 171.45 38.1 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"+5V\""
-			(at 171.45 38.1 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid "2b3cf2f7-4c62-4a21-a80a-a29acde6d271")
-		)
-		(instances
-			(project "PumpMonitor2_SuperMini"
-				(path "/a64df1c8-1015-4e03-acf3-99726186efb0"
-					(reference "#PWR026")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Device:C")
 		(at 80.01 143.51 0)
 		(unit 1)
@@ -8830,7 +8747,7 @@
 		(pin "10"
 			(uuid "9009a0ec-dd4c-4998-ba88-8ef71ae1c2cc")
 		)
-		(pin "14"
+		(pin "15"
 			(uuid "5098a840-ee69-4c89-ade9-eddb943f2569")
 		)
 		(pin "8"

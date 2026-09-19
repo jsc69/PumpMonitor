@@ -329,7 +329,7 @@ void testDisplay() {
   Serial.println(F("  Initialisiere Display..."));
 
   SPI.begin(PIN_DIS_SCK, -1, PIN_DIS_MOSI, PIN_DIS_CS);
-  display.init(115200, true, 2, false);
+  display.init(115200, true, 20, false);
 
   Serial.println(F("  Zeige Testbild..."));
 
