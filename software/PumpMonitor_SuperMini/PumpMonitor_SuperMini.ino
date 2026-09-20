@@ -21,13 +21,13 @@
 static const char* TAG = "PUMP_MONITOR";
 const int PUMP_TRIGGER = 1500;  // => Pumpe AUS + (Pumpen AN - Pumpe AUS)/2 => 200 + (2800-200)/2 = 1500
 
-bool NO_WHATSAPP = true;
+bool NO_WHATSAPP = false;
 bool NO_EMAIL = false;
 
 // --- ZEITSTEUERUNG ---
-const int SLEEP_MINUTES = 2;   // Zentrales Intervall zwischen zwei Messungen
+const int SLEEP_MINUTES = 2;   // Zentrales Intervall zwischen zwei Messungen in Minuten
 const int HEARTBEAT_DAYS = 7;  // Alle wie viele Tage soll ein Statusbericht kommen?
-const uint32_t OTA_TIMEOUT = 120000;
+const uint32_t OTA_TIMEOUT = 300000;
 
 
 // Objekte
@@ -182,23 +182,24 @@ void sendWhatsApp(String msg) {
     HTTPClient http;
     msg.replace(" ", "+"); // Leerzeichen in der Nachricht durch "+" ersetzen
 
-    int num_recipients = sizeof(whatsapp_recipients) / sizeof(whatsapp_recipients[0]);
     for (int i = 0; i < num_recipients; i++) {
       // Telefonnummer für die URL anpassen: "+" durch "%2B" ersetzen
-      String phone = String(whatsapp_recipients[i]);
+      String phone = String(whatsapp_recipients[i][0]);  // Telefonnummer aus Array
+      String apiKey = String(whatsapp_recipients[i][1]); // API-Key aus Array
+
       phone.replace("+", "%2B");
 
       String url = "https://api.callmebot.com/whatsapp.php?phone=" + phone +
                    "&text=" + msg +
-                   "&apikey=" + String(apiKey); // apiKey aus credentials.h
+                   "&apikey=" + apiKey;
 
       http.begin(url);
       int httpCode = http.GET();
 
       if (httpCode > 0) {
-        ESP_LOGD("WHATSAPP", "WhatsApp an %s gesendet.\n", whatsapp_recipients[i]);
+        ESP_LOGD("WHATSAPP", "WhatsApp an %s gesendet.\n", whatsapp_recipients[i][0]);
       } else {
-        ESP_LOGE("WHATSAPP", "Fehler bei %s: %s\n", whatsapp_recipients[i], http.errorToString(httpCode).c_str());
+        ESP_LOGE("WHATSAPP", "Fehler bei %s: %s\n", whatsapp_recipients[i][0], http.errorToString(httpCode).c_str());
       }
       http.end();
 
@@ -346,27 +347,27 @@ bool checkBattery() {
 }
 
 void checkPumpActivity() {
-  int differenz = messurePumpCurrent();
+  int peakToPeak = messurePumpCurrent();
 
-  if (differenz > PUMP_TRIGGER) {
-    ESP_LOGI(TAG, "Aktivität erkannt: %d > %d", differenz, PUMP_TRIGGER);
+  if (peakToPeak > PUMP_TRIGGER) {
+    ESP_LOGI(TAG, "Aktivität erkannt: %d > %d", peakToPeak, PUMP_TRIGGER);
     geraetLiefZuvor = true;
   }
 }
 
 int messurePumpCurrent() {
-  int mx = 0, mn = 4095;
+  int maxVal = 0, minVal = 4095;
   uint32_t start = millis();
-  while (millis() - start < 200) {
-    int v = analogRead(PIN_PUMP_CHECK);
-    if (v > mx) mx = v;
-    if (v < mn) mn = v;
+  while (millis() - start < 250) {
+    int adcValue = analogRead(PIN_PUMP_CHECK);
+    if (adcValue > maxVal) maxVal = adcValue;
+    if (adcValue < minVal) minVal = adcValue;
   }
 
-  int differenz = mx - mn;
-  ESP_LOGD(TAG, "Gemessene Pump-Strom: %d", differenz);
+  int peakToPeak = maxVal - minVal;
+  ESP_LOGD(TAG, "Gemessene Pump-Strom: %d", peakToPeak);
 
-  return differenz;
+  return peakToPeak;
 }
 
 void handleOTAMode() {

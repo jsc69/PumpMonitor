@@ -1,4 +1,5 @@
 credentials.h
 *.zip
 fp-info-cache
+build/
 

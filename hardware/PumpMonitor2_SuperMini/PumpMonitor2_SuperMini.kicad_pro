@@ -726,7 +726,7 @@
         "uuid": "a64df1c8-1015-4e03-acf3-99726186efb0"
       }
     ],
-    "used_designators": "BT1,SW1,U1,J3,J7,J9,#PWR1,#PWR18,#PWR26-27,ESP32\\-C3_SuperMini1",
+    "used_designators": "ESP32\\-C3_SuperMini1,#PWR1,#PWR18,#PWR26-27,J3,J7,J9,U1,SW1,BT1",
     "variants": []
   },
   "sheets": [

@@ -18,7 +18,9 @@ const char* email_recipients[] = {
 };
 
 // Konfiguration WhatsApp
-const char* whatsapp_recipients[] = {
-  "+49xxxxxxx"
+const int num_recipients = 2;
+const char* whatsapp_recipients[num_recipients][2] = {
+  {"+49176xxxxxxxx","xxxxxxx"},
+  {"+49176xxxxxxxx","xxxxxxx"}
 };
-String apiKey = "xxxxxx";
+
