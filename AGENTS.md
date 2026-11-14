@@ -278,8 +278,8 @@ Dieses Dokument definiert die **Rollen, Skills, Expertise und Arbeitsweisen** de
 
 ---
 ---
-```markdown
 # Dateistruktur für Agents
+```Text
 
 /workspace/PumpMonitor/
 ├── AGENTS.md                  # Diese Datei
@@ -291,8 +291,13 @@ Dieses Dokument definiert die **Rollen, Skills, Expertise und Arbeitsweisen** de
     └── PumpMonitor2_SuperMini/ # Hardware-Elektronik-Agent
         ├── PumpMonitor2_SuperMini.kicad_pro
         ├── PumpMonitor2_SuperMini.kicad_sch
-        ├── PumpMonitor2_SuperMini.kicad_pcc
+        ├── PumpMonitor2_SuperMini.kicad_pcb
         └── 3D/                 # Hardware-Konstruktion-Agent
             ├── Box.stl
             ├── Deckel.stl
             └── blende.stl
+            
+```
+---
+---
+*Letzte Aktualisierung: [Datum]*
