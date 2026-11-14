@@ -1,0 +1,22 @@
+{
+  "mcpServers": {
+    "kicad": {
+      "command": "uvx",
+      "args": [
+        "kicad-mcp-pro"
+      ],
+      "env": {
+        "KICAD_MCP_PROJECT_DIR": "/home/jsc69/Dokumente/projekte/PumpMonitor/hardware/PumpMonitor2_SuperMini",
+        "KICAD_MCP_PROFILE": "default",
+        "KICAD_MCP_OPERATING_MODE": "readonly",
+        "KICAD_MCP_TRANSPORT": "stdio"
+      },
+      "type": "stdio"
+    },
+    "freecad": {
+      "command": "uvx",
+      "args": ["freecad-mcp"],
+      "type": "stdio"
+    }
+  }
+}
