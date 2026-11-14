@@ -14,6 +14,75 @@ Dieses Dokument definiert die **Rollen, Skills, Expertise und Arbeitsweisen** de
 | **Hardware-Konstruktion** | Mechanik-Design | `/hardware/3D/` | 3D-Modelle, Gehäuse, mechanische Integration |
 
 ---
+## 🚀 **Zusammenarbeit der Agents**
+
+### 🔄 **Typische Workflows**
+
+#### **1. Bugfix (Software-Agent + Orchestrator)**
+1. Orchestrator erstellt Issue: *"Bug: millis() % 1000 in handleMeasurement()"*
+2. Software-Agent übernimmt Issue, behebt Bug, erstellt Pull Request
+3. Orchestrator reviewt PR und mergt
+
+#### **2. Hardware-Änderung (Hardware-Elektronik + Orchestrator)**
+1. Orchestrator erstellt Issue: *"Hardware: Pullup für PIN_POWER_CHECK hinzufügen"*
+2. Hardware-Elektronik-Agent fügt Pullup in KiCad hinzu, commited Änderungen
+3. Orchestrator reviewt und mergt
+
+#### **3. Gehäuse-Entwurf (Hardware-Konstruktion + Hardware-Elektronik)**
+1. Hardware-Konstruktion-Agent entwirft Gehäuse in FreeCAD
+2. Hardware-Elektronik-Agent prüft Passform mit KiCad-3D-Modellen
+3. Hardware-Konstruktion-Agent passt Gehäuse an, exportiert STL
+4. Orchestrator reviewt und mergt
+
+#### **4. Neues Feature (Software-Agent + Hardware-Agenten)**
+1. Orchestrator erstellt Issue: *"Feature: Web-Konfiguration für credentials"*
+2. Software-Agent implementiert LittleFS-Konfiguration
+3. Hardware-Elektronik-Agent prüft, ob neue Komponenten nötig sind
+4. Hardware-Konstruktion-Agent passt Gehäuse an (falls neue Taster/Anschlüsse)
+5. Orchestrator koordiniert und mergt alle Änderungen
+
+---
+## 📌 **Allgemeine Regeln für alle Agents**
+
+✅ **Commits:**
+- Kurze, klare Nachrichten (z. B. "Fix millis() timer bug")
+- Ein Feature/Bugfix pro Commit
+- Keine riesigen Commits (lieber mehrere kleine)
+
+✅ **Pull Requests:**
+- Klare Beschreibung (Was? Warum? Getestet?)
+- Referenz auf Issue (z. B. "Closes #123")
+- Screenshots/Logs bei UI-Änderungen oder Bugfixes
+
+✅ **Dokumentation:**
+- Code-Kommentare nur bei komplexer Logik
+- READMEs aktualisieren, wenn sich etwas Grundlegendes ändert
+- Neue Dateien immer mit kurzem Header kommentieren
+
+✅ **Testing:**
+- Lokale Tests durchführen (soweit möglich)
+- Bei Hardware-Änderungen: Passform prüfen (KiCad 3D-Ansicht, FreeCAD)
+- Bei Software-Änderungen: Serial Monitor-Output prüfen
+
+---
+## 💡 **Tipps für die Zusammenarbeit**
+
+1. **Klare Aufgabenstellung:**
+   - Je genauer die Beschreibung, desto besser das Ergebnis.
+   - Beispiel: *"Füge einen 10kΩ-Pullup für PIN_POWER_CHECK in KiCad hinzu"* statt *"Mach mal was mit dem Schaltplan"*.
+
+2. **Priorisierung:**
+   - Nutze GitHub Labels (`high`, `medium`, `low`) für Prioritäten.
+   - Kritische Bugs zuerst, Features später.
+
+3. **Kommunikation:**
+   - Bei Unklarheiten: Nachfragen! (z. B. *"Welche Spannung hat der Akku?"*)
+   - Regelmäßige Updates, wenn eine Aufgabe länger dauert.
+
+4. **Dokumentation:**
+   - Änderungen in `readme.md` oder `AGENTS.md` aktualisieren.
+   - Neue Features in der `readme.md` dokumentieren.
+
 ---
 ## 🔧 **Detaillierte Agenten-Beschreibungen**
 
