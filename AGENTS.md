@@ -1,303 +1,37 @@
-# 🤖 Agents für PumpMonitor
-
-Dieses Dokument definiert die **Rollen, Skills, Expertise und Arbeitsweisen** der KI-Agenten für das PumpMonitor-Projekt.
-
----
-
-## 📋 **Agenten-Übersicht**
-
-| **Agent** | **Rolle** | **Arbeitsverzeichnis** | **Kurzbeschreibung** |
-|-----------|-----------|------------------------|----------------------|
-| **Orchestrator** | Koordination | `/` | Projektmanagement, Schnittstelle zu dir, Aufgabenverteilung |
-| **Software-Agent** | Firmware-Entwicklung | `/software/` | Bugfixes, Features, Code-Optimierung für ESP32 |
-| **Hardware-Elektronik** | Elektronik-Design | `/hardware/PumpMonitor2_SuperMini/` | KiCad, Schaltplan, PCB, BOM (Elektronik) |
-| **Hardware-Konstruktion** | Mechanik-Design | `/hardware/3D/` | 3D-Modelle, Gehäuse, mechanische Integration |
-
----
-## 🚀 **Zusammenarbeit der Agents**
-
-### 🔄 **Typische Workflows**
-
-#### **1. Bugfix (Software-Agent + Orchestrator)**
-1. Orchestrator erstellt Issue: *"Bug: millis() % 1000 in handleMeasurement()"*
-2. Software-Agent übernimmt Issue, behebt Bug, erstellt Pull Request
-3. Orchestrator reviewt PR und mergt
-
-#### **2. Hardware-Änderung (Hardware-Elektronik + Orchestrator)**
-1. Orchestrator erstellt Issue: *"Hardware: Pullup für PIN_POWER_CHECK hinzufügen"*
-2. Hardware-Elektronik-Agent fügt Pullup in KiCad hinzu, commited Änderungen
-3. Orchestrator reviewt und mergt
-
-#### **3. Gehäuse-Entwurf (Hardware-Konstruktion + Hardware-Elektronik)**
-1. Hardware-Konstruktion-Agent entwirft Gehäuse in FreeCAD
-2. Hardware-Elektronik-Agent prüft Passform mit KiCad-3D-Modellen
-3. Hardware-Konstruktion-Agent passt Gehäuse an, exportiert STL
-4. Orchestrator reviewt und mergt
-
-#### **4. Neues Feature (Software-Agent + Hardware-Agenten)**
-1. Orchestrator erstellt Issue: *"Feature: Web-Konfiguration für credentials"*
-2. Software-Agent implementiert LittleFS-Konfiguration
-3. Hardware-Elektronik-Agent prüft, ob neue Komponenten nötig sind
-4. Hardware-Konstruktion-Agent passt Gehäuse an (falls neue Taster/Anschlüsse)
-5. Orchestrator koordiniert und mergt alle Änderungen
-
----
-## 📌 **Allgemeine Regeln für alle Agents**
-
-✅ **Commits:**
-- Kurze, klare Nachrichten (z. B. "Fix millis() timer bug")
-- Ein Feature/Bugfix pro Commit
-- Keine riesigen Commits (lieber mehrere kleine)
-
-✅ **Pull Requests:**
-- Klare Beschreibung (Was? Warum? Getestet?)
-- Referenz auf Issue (z. B. "Closes #123")
-- Screenshots/Logs bei UI-Änderungen oder Bugfixes
-
-✅ **Dokumentation:**
-- Code-Kommentare nur bei komplexer Logik
-- READMEs aktualisieren, wenn sich etwas Grundlegendes ändert
-- Neue Dateien immer mit kurzem Header kommentieren
-
-✅ **Testing:**
-- Lokale Tests durchführen (soweit möglich)
-- Bei Hardware-Änderungen: Passform prüfen (KiCad 3D-Ansicht, FreeCAD)
-- Bei Software-Änderungen: Serial Monitor-Output prüfen
-
----
-## 💡 **Tipps für die Zusammenarbeit**
-
-1. **Klare Aufgabenstellung:**
-   - Je genauer die Beschreibung, desto besser das Ergebnis.
-   - Beispiel: *"Füge einen 10kΩ-Pullup für PIN_POWER_CHECK in KiCad hinzu"* statt *"Mach mal was mit dem Schaltplan"*.
-
-2. **Priorisierung:**
-   - Nutze GitHub Labels (`high`, `medium`, `low`) für Prioritäten.
-   - Kritische Bugs zuerst, Features später.
-
-3. **Kommunikation:**
-   - Bei Unklarheiten: Nachfragen! (z. B. *"Welche Spannung hat der Akku?"*)
-   - Regelmäßige Updates, wenn eine Aufgabe länger dauert.
-
-4. **Dokumentation:**
-   - Änderungen in `readme.md` oder `AGENTS.md` aktualisieren.
-   - Neue Features in der `readme.md` dokumentieren.
-
----
-## 🔧 **Detaillierte Agenten-Beschreibungen**
-
----
-
-### 🎭 **Orchestrator**
-**Rolle:** *Projektkoordination, Schnittstelle zu dir, Aufgabenverteilung*
-
-#### 📌 **Skills & Expertise:**
-- **GitHub:** Issues, Pull Requests, Projects, Milestones, Releases
-- **Projektmanagement:** Priorisierung, Task-Verteilung, Fortschritts-Tracking
-- **Dokumentation:** Markdown, READMEs, Changelogs
-
-#### 🎯 **Verantwortlichkeiten:**
-✅ **Issues erstellen & verwalten**
-- Klare Beschreibung der Aufgabe (Was soll gemacht werden? Warum?)
-- Labels: `bug`, `feature`, `hardware`, `software`, `doku`, `high`, `medium`, `low`
-
-✅ **Pull Requests reviewen & mergen**
-- Plausibilitätsprüfung
-- Merge nach Bestätigung
-
-✅ **Releases & Dokumentation**
-- GitHub Releases erstellen
-- `AGENTS.md` & `readme.md` pflegen
-
-#### 💡 **Arbeitsweise:**
-- **Kommunikation:** Du sprichst nur mit dem Orchestrator
-- **Tools:** GitHub UI, Markdown
-
----
----
-### 💻 **Software-Agent**
-**Rolle:** *Firmware-Entwicklung, Bugfixes, Features, Code-Optimierung*
-
-#### 📌 **Skills & Expertise:**
-
-**Microcontroller:**
-- ✅ **ESP32-Experte** (ESP32-C3 SuperMini, Deep Sleep, GPIO, ADC, Wakeup-Sources, RTC-Memory)
-- ✅ Arduino Framework
-- ✅ ESP-IDF Grundkenntnisse
-
-**Libraries & Protokolle:**
-- ✅ **GxEPD2** (E-Paper-Displays, SPI)
-- ✅ **U8g2_for_Adafruit_GFX** (Fonts, Grafik-Rendering)
-- ✅ **ReadyMail** (SMTP/IMAP, TLS)
-- ✅ **HTTPClient** (REST-APIs, WhatsApp CallMeBot)
-- ✅ **WiFi** (Station/AP-Modus, NTP)
-- ✅ **HTTPUpdateServer** (OTA-Updates)
-- ✅ **esp_sleep.h** (Deep Sleep, GPIO-Wakeup)
-
-**Tools:**
-- ✅ **Arduino IDE**
-- ✅ **PlatformIO** (empfohlen)
-- ✅ **VS Code** + Arduino-Extension
-- ✅ **Git**
-- ✅ **Serial Monitor**
-
-**Best Practices:**
-- ✅ Deep-Sleep-Optimierung
-- ✅ RTC-Memory für Zustandserhaltung
-- ✅ OTA-Updates
-- ✅ WhatsApp/Email-Benachrichtigungen
-- ✅ Stromsparmodi
-
-#### 🎯 **Verantwortlichkeiten:**
-
-✅ **Bugfixes umsetzen**
-- `millis() % 1000` durch Timer-basierte Lösung ersetzen
-- Endlosschleifen in `handleMeasurement()` mit Watchdog absichern
-- Blockierende Warteschleifen durch Interrupts/Timer ersetzen
-- `PIN_POWER_CHECK` mit `INPUT_PULLUP` konfigurieren
-
-✅ **Neue Features entwickeln**
-- Web-Konfiguration für `credentials.h` (LittleFS)
-- HTTPS für WhatsApp (SSL/TLS)
-- mDNS (`pumpmonitor.local`)
-- Solar-Ladung integrieren
-- Logging ins SPIFFS
-
-✅ **Code-Qualität verbessern**
-- Kommentare nur bei komplexer Logik
-- Variablennamen vereinheitlichen
-- Unnötigen Code entfernen
-
-#### 💡 **Arbeitsweise:**
-- **Entwicklungsumgebung:** PlatformIO (empfohlen) oder Arduino IDE
-- **Testing:** Lokale Tests
-- **Debugging:** `Serial.println()` oder `ESP_LOGD()`
-- **Pull Requests:** Immer mit klarer Beschreibung
-
-#### 📚 **Wichtige Referenzen:**
-- [ESP32-C3 Datasheet](https://www.espressif.com/sites/default/files/documentation/esp32-c3_datasheet_en.pdf)
-- [GxEPD2 Library](https://github.com/ZinggJM/GxEPD2)
-- [ReadyMail Library](https://github.com/mo-thunder/ReadyMail)
-- [CallMeBot API](https://www.callmebot.com/blog/free-api-whatsapp-messages/)
-
----
----
-### 🔌 **Hardware-Elektronik-Agent**
-**Rolle:** *Schaltplan, PCB-Design, BOM (Elektronik)*
-
-#### 📌 **Skills & Expertise:**
-
-**Tools:**
-- ✅ **KiCad-Experte** (Schaltplan, PCB-Layout, 3D-Ansicht)
-- ✅ **JLCPCB/EasyEDA**
-- ✅ **LCSC** (Komponenten-Datenbank)
-
-**Elektronik-Design:**
-- ✅ Schaltplan-Design (Stromsensoren, Spannungsteiler, Pullups/Pulldowns)
-- ✅ PCB-Layout (Signalintegrität, Stromversorgung, EMC)
-- ✅ BOM erstellen und pflegen
-- ✅ Fertigungsdaten exportieren (Gerber, Pick-and-Place)
-
-**Komponenten-Kenntnisse:**
-- ✅ **ESP32-C3 SuperMini** (16-Pin-Board, Pinout, ADC-Pins)
-- ✅ **ZMCT103C** (AC-Stromsensor)
-- ✅ **E-Paper-Displays** (GxEPD2, SPI)
-- ✅ Spannungsteiler (Akkumonitoring)
-- ✅ Taster (Pullup/Pulldown, Debouncing)
-
-#### 🎯 **Verantwortlichkeiten:**
-
-✅ **KiCad-Projekte pflegen**
-- Schaltplan (`PumpMonitor2_SuperMini.kicad_sch`) aktualisieren
-- PCB-Layout (`PumpMonitor2_SuperMini.kicad_pcb`) optimieren
-
-✅ **Schaltplan verbessern**
-- Pullup-Widerstand (10kΩ) für `PIN_POWER_CHECK` hinzufügen
-- Spannungsteiler für Akku kalibrieren
-
-✅ **BOM erstellen & pflegen**
-- Stückliste für Elektronik-Komponenten
-- Preise und Verfügbarkeit prüfen
-
-✅ **Fertigungsdaten exportieren**
-- Gerber-Dateien für PCB-Hersteller
-- Pick-and-Place-Dateien
-
-#### 💡 **Arbeitsweise:**
-- **Tools:** KiCad (Haupttool), JLCPCB
-- **Dokumentation:** Schaltplan als PDF, BOM als CSV/HTML
-
-#### 📚 **Wichtige Referenzen:**
-- [ESP32-C3 Datasheet](https://www.espressif.com/sites/default/files/documentation/esp32-c3_datasheet_en.pdf)
-- [ZMCT103C Datasheet](https://en.clever-innovations.com/products/ZMCT103C)
-- [KiCad Dokumentation](https://docs.kicad.org/)
-
----
----
-### 🏗️ **Hardware-Konstruktion-Agent**
-**Rolle:** *3D-Modelle, Gehäuse, mechanische Integration*
-
-#### 📌 **Skills & Expertise:**
-
-**Tools:**
-- ✅ **FreeCAD** (parametrisches 3D-Modellierung)
-- ✅ **OpenSCAD** (Code-basierte 3D-Modellierung)
-- ✅ **PrusaSlicer** / **Cura** (Slicing)
-- ✅ **Blender** (für Renderings)
-
-**Mechanik-Design:**
-- ✅ Gehäuse-Design (Wandmontage, Kabelmanagement)
-- ✅ 3D-Druck-Optimierung (Toleranzen, Support-Strukturen)
-- ✅ Materialkenntnisse (PLA, PETG, ABS, TPU)
-
-#### 🎯 **Verantwortlichkeiten:**
-
-✅ **Gehäuse entwerfen**
-- ESP32-C3 SuperMini (16-Pin-Board, ~40x20mm)
-- E-Paper-Display (1,54" oder 2,13")
-- Taster-Aussparungen für DOWN/UP
-- USB-C-Anschluss für Programmierung
-- Kabeldurchführungen
-
-✅ **3D-Modelle optimieren**
-- STL-Dateien für verschiedene Drucker
-- Support-Strukturen definieren
-- Druckprofile erstellen
-
-✅ **Mechanische BOM erstellen**
-- Stückliste für mechanische Teile
-- Materialempfehlungen
-
-#### 💡 **Arbeitsweise:**
-- **Tools:** FreeCAD (empfohlen) oder OpenSCAD
-- **Dokumentation:** STL/STEP-Dateien, Explosionszeichnungen
-
-#### 📚 **Wichtige Referenzen:**
-- [FreeCAD Dokumentation](https://wiki.freecad.org/)
-- [PrusaSlicer Handbuch](https://help.prusa3d.com/)
-
----
----
-# Dateistruktur für Agents
-```Text
-
-/workspace/PumpMonitor/
-├── AGENTS.md                  # Diese Datei
-├── software/
-│   └── PumpMonitor_SuperMini/
-│       ├── PumpMonitor_SuperMini.ino
-│       └── credentials-template.h
-└── hardware/
-    └── PumpMonitor2_SuperMini/ # Hardware-Elektronik-Agent
-        ├── PumpMonitor2_SuperMini.kicad_pro
-        ├── PumpMonitor2_SuperMini.kicad_sch
-        ├── PumpMonitor2_SuperMini.kicad_pcb
-        └── 3D/                 # Hardware-Konstruktion-Agent
-            ├── Box.stl
-            ├── Deckel.stl
-            └── blende.stl
-            
-```
----
----
-*Letzte Aktualisierung: [Datum]*
+# PumpMonitor
+
+Batteriebetriebener Pumpenwächter: ESP32-C3 SuperMini, E-Paper, ZMCT103C-Stromsensor,
+Deep-Sleep, Alarme per WhatsApp (CallMeBot) und E-Mail. Details: `readme.md`.
+
+## Struktur und Zuständigkeiten
+| Bereich | Pfad | Hinweise |
+|---|---|---|
+| Firmware | `software/` | siehe `software/AGENTS.md` |
+| Elektronik | `hardware/PumpMonitor2_SuperMini/` | siehe dortige `AGENTS.md` |
+| Konstruktion | `hardware/3D/` | siehe dortige `AGENTS.md` |
+| Doku | `doku/`, `readme.md`, `docs/` | |
+
+Arbeite nur in dem Bereich, der zur Aufgabe passt. Änderungen außerhalb deines
+Bereichs nicht selbst durchführen, sondern als Folgeaufgabe benennen.
+
+## Gemeinsamer Kontext
+`docs/project-context.md` ist die einzige maßgebliche Quelle für Pinbelegung,
+Platinen- und Bauteilmaße, Spannungen und andere Randbedingungen, die mehrere
+Bereiche betreffen. Lies sie, bevor du etwas änderst, das daran hängt.
+- Ändert sich ein Wert, zuerst dort ändern, danach Firmware, Schaltplan bzw. Konstruktion anpassen.
+- Elektrische Änderung mit mechanischer Auswirkung (Taster, Stecker, Platinenmaße)
+  oder Pin-Änderung: im Ergebnis ausdrücklich als "Folgearbeit" auflisten.
+
+## Offene Aufgaben
+Die TODO-Liste steht in `readme.md`. Dort nachsehen, was ansteht, und erledigte
+Punkte abhaken. Keine eigenen Listen in den AGENTS.md führen.
+
+## Regeln für alle
+- Secrets: `credentials.h` nie committen, nie ausgeben. Nur die Vorlage `credentials-template.h` nutzen.
+- Commits: klein, ein Thema pro Commit, kurze Nachricht im Imperativ.
+- Branch pro Aufgabe (`fix/…`, `feat/…`, `hw/…`, `mech/…`), nie direkt auf `main`.
+- PR: Was, Warum, Wie getestet. Mit `Closes #n` auf das Issue verweisen, falls vorhanden.
+- Merge nur nach Bestätigung durch den User.
+- Kommentare im Code nur bei komplexer Logik. Neue Dateien bekommen einen kurzen Header.
+- Bei Unklarheiten nachfragen, statt zu raten (z. B. Akkutyp, Spannungen, Maße).
+- Im Ergebnis immer nennen: was geändert wurde, wie es geprüft wurde, was der User noch tun muss.

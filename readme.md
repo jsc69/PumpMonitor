@@ -124,6 +124,8 @@ Folgende Variablen überleben den Deep-Sleep ohne Flash-Schreibzugriff:
 | 20   | `PIN_DIS_SCK`        | Output   | E-Paper SPI Clock (HSPI)                  |
 | 21   | `PIN_DIS_MOSI`       | Output   | E-Paper SPI MOSI (HSPI)                   |
 
+> Die maßgebliche Quelle für Pinbelegung, Maße und Randbedingungen ist künftig `docs/project-context.md`.
+
 ### Spannungsteiler Akku
 
 ```
@@ -505,19 +507,30 @@ Durch den kurzen Wakeup und die sofortige Rückkehr in den Deep-Sleep ist eine A
 
 ## Todo
 
+Die Agents (siehe `AGENTS.md`) arbeiten diese Liste von oben nach unten ab und haken erledigte Punkte ab.
+
+- [ ] **Migration (Firmware): Von Arduino IDE auf PlatformIO umstellen**
+  - `platformio.ini` in `software/` anlegen: Board ESP32-C3 SuperMini (`esp32-c3-devkitm-1` o. ä., USB-CDC-on-Boot prüfen), Arduino-Framework, Environment `esp32c3`.
+  - Alle verwendeten Libraries mit fester Version in `lib_deps` eintragen (E-Paper-Treiber, Adafruit GFX/U8g2, verwendete WiFi/HTTP-Libs).
+  - Sketch in die PlatformIO-Struktur überführen (`src/main.cpp`, ggf. `#include <Arduino.h>` und Funktionsprototypen ergänzen). Verhalten nicht ändern, kein Refactoring.
+  - `credentials.h` bleibt außerhalb der Versionskontrolle (`.gitignore` prüfen), Vorlage in der README beibehalten.
+  - OTA vorbereiten: zweites Environment (z. B. `esp32c3_ota`) mit `upload_protocol = espota` und `upload_port` als Platzhalter. Prüfen, ob die Firmware OTA bereits unterstützt, falls nicht, als neues TODO vermerken.
+  - README aktualisieren: Build-/Upload-Anleitung auf `pio`-Befehle umstellen, Arduino-IDE-Hinweise als Alternative streichen oder kennzeichnen.
+  - **Fertig, wenn:** `pio run -e esp32c3` ohne Fehler durchläuft. Flashen erst nach Bestätigung des Users.
+- [ ] **Doku:** `docs/project-context.md` befüllen (Akkutyp, Platinen- und Bauteilmaße, Displaytyp, Position von USB-C und Tastern messen und eintragen).
 - [ ] **Bugfix:** `handleMeasurement()`-Display-Refresh reparieren (`millis() % 1000` durch Timer ersetzen).
 - [ ] **Bugfix:** Watchdog in `handleMeasurement()` einbauen, damit das Gerät nicht dauerhaft wach bleibt.
 - [ ] **Bugfix:** `while(!digitalRead(PIN_BUTTON_UP)) {}` durch Interrupt oder Timer ersetzen.
+- [ ] **Hardware/Firmware:** `PIN_POWER_CHECK` (GPIO 2) mit definiertem Pegel beschalten: 10 kΩ Pullup in der Hardware (Elektronik-Agent) oder `INPUT_PULLDOWN`/Firmware-Workaround. Entscheidung treffen und umsetzen.
 - [ ] **Refactor:** `ArduinoOTA` entfernen oder konsistent einsetzen (aktuell unbenutzt).
 - [ ] **Robustheit:** `alarmSperre` automatisch zurücksetzen, sobald das Netz länger als X Sekunden stabil ist.
-- [ ] **Robustheit:** `PIN_POWER_CHECK` mit definiertem Pull-up/down beschalten oder `INPUT_PULLDOWN` setzen.
 - [ ] **Feature:** Konfiguration der Schwellen (`PUMP_TRIGGER`, Akku-Schwelle, `cyclesRequired`) über Weboberfläche.
 - [ ] **Feature:** `credentials.h` durch LittleFS-Datei ersetzen (Konfiguration via OTA-Weboberfläche).
 - [ ] **Feature:** mDNS-Service-Name (`pumpmonitor.local`) statt IP-Anzeige auf dem Display.
 - [ ] **Feature:** HTTPS statt HTTP für WhatsApp (`ssl_client.setInsecure()` analog SMTP).
 - [ ] **Doku:** Schaltplan und PCB-Layout als PDF/Image hinzufügen.
 - [ ] **Test:** Unit-Tests für `fetchBatteryVoltage()` und `messurePumpCurrent()`.
-- [ ] **CI:** GitHub-Actions-Workflow für PlattformIO-Build.
+- [ ] **CI:** GitHub-Actions-Workflow für PlatformIO-Build.
 - [ ] **Gehäuse:** 3D-Druck-Modell (STEP/STL) für Wandmontage.
 - [ ] **Power:** Solar-/USB-Lade-IC (z. B. TP4056) sauber in den Deep-Sleep-Pfad integrieren.
 - [ ] **Logging:** Optional Persistierung der letzten X Alarme ins SPIFFS für spätere Diagnose.
