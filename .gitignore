@@ -2,4 +2,5 @@ credentials.h
 *.zip
 fp-info-cache
 build/
-
+.history/
+**/.history/
