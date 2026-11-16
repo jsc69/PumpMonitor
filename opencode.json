@@ -1,65 +1,36 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "mcp": {
-    "servers": {
-      "kicad": {
-        "type": "local",
-        "command": [
-          "uvx",
-          "kicad-mcp-pro",
-          "--transport",
-          "stdio"
-        ],
-        "environment": {
-          "KICAD_MCP_PROJECT_DIR": ".",
-          "KICAD_MCP_PROFILE": "default",
-          "KICAD_MCP_OPERATING_MODE": "readonly"
-        },
-        "codemode": false
-      }
+    "kicad": {
+      "type": "local",
+      "command": ["uvx", "kicad-mcp-pro", "--transport", "stdio"],
+      "environment": {
+        "KICAD_MCP_PROJECT_DIR": ".",
+        "KICAD_MCP_PROFILE": "default",
+        "KICAD_MCP_OPERATING_MODE": "readonly"
+      },
+      "enabled": true
     }
   },
-  "instructions": [
-    "AGENTS.md"
-  ],
-  "permissions": [
-    {
-      "action": "kicad_*",
-      "resource": "*",
-      "effect": "deny"
-    },
-    {
-      "action": "edit",
-      "resource": "*",
-      "effect": "ask"
-    },
-    {
-      "action": "shell",
-      "resource": "*",
-      "effect": "ask"
-    }
-  ],
-  "agents": {
+  "instructions": ["AGENTS.md"],
+  "tools": {
+    "kicad_*": false
+  },
+  "permission": {
+    "edit": "ask",
+    "bash": "ask"
+  },
+  "agent": {
     "pcb-review": {
       "description": "KiCad PCB review and manufacturing readiness agent",
       "mode": "primary",
-      "permissions": [
-        {
-          "action": "kicad_*",
-          "resource": "*",
-          "effect": "allow"
-        },
-        {
-          "action": "edit",
-          "resource": "*",
-          "effect": "deny"
-        },
-        {
-          "action": "shell",
-          "resource": "*",
-          "effect": "ask"
-        }
-      ]
+      "tools": {
+        "kicad_*": true
+      },
+      "permission": {
+        "edit": "deny",
+        "bash": "ask"
+      }
     }
   }
 }
